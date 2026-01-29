@@ -1,0 +1,29 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: angelaparga
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: product-service
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  stage: dev
+  # Uncomment to easily set up a custom domain. Read the docs for more details:
+  # https://www.serverless.com/framework/docs/providers/aws/guide/domains
+  # domain: api.example.com
+
+functions:
+
+  getProductsList:
+    handler: src/functions/getProductsList/handler.getProductsList
+    events:
+      - httpApi:
+          path: /products
+          method: get
+
+  getProductsById:
+    handler: src/functions/getProductsById/handler.getProductsById
+    events:
+      - httpApi:
+          path: /products/{productId}
+          method: get
