@@ -1,0 +1,15 @@
+{
+  "unknown": {
+    "versionFramework": "4.31.2",
+    "command": [],
+    "options": {
+      "template": "aws-nodejs-typescript",
+      "name": "product-service"
+    },
+    "serviceProviderAwsCfStackId": null,
+    "serviceProviderAwsCfStackCreated": null,
+    "serviceProviderAwsCfStackUpdated": null,
+    "serviceProviderAwsCfStackStatus": null,
+    "serviceProviderAwsCfStackOutputs": null
+  }
+}
