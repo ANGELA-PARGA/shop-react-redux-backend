@@ -1,94 +1,62 @@
-import { getProductsList } from '../src/functions/getProductsList/handler.js';
+import { jest, describe, test, expect, beforeEach } from '@jest/globals';
 import { products } from '../src/data/products.js';
 
+import * as dbMocks from './__mocks__/db.js';
+
+jest.unstable_mockModule('../src/utils/db.js', () => dbMocks);
+
+const { getProductsList } = await import('../src/functions/getProductsList/handler.js');
+
 describe('getProductsList Lambda Handler', () => {
-  // Test 1: Should return all products with 200 status
+  beforeEach(() => {
+    jest.clearAllMocks();
+    
+    const productsWithoutCount = products.map(({ count, ...rest }) => rest);
+    const mockStocks = products.map(p => ({ 
+      product_id: p.id, 
+      count: p.count 
+    }));
+    
+    dbMocks.getAllProducts.mockResolvedValue(productsWithoutCount);
+    dbMocks.getAllStocks.mockResolvedValue(mockStocks);
+    dbMocks.joinProductsWithStocks.mockReturnValue(products); // Returns joined data
+  });
+
   test('should return all products with status code 200', async () => {
-    // Arrange
     const event = {};
-    
-    // Act
     const response = await getProductsList(event);
-    
-    // Assert
+    const body = JSON.parse(response.body);
+
     expect(response.statusCode).toBe(200);
     expect(response.headers).toHaveProperty('Access-Control-Allow-Origin', '*');
-    expect(response.headers).toHaveProperty('Access-Control-Allow-Credentials', true);
+    expect(body).toEqual(products); // Now this will match!
+    expect(body.length).toBe(products.length);
+    
+    expect(dbMocks.getAllProducts).toHaveBeenCalledTimes(1);
+    expect(dbMocks.getAllStocks).toHaveBeenCalledTimes(1);
+    expect(dbMocks.joinProductsWithStocks).toHaveBeenCalledTimes(1);
   });
 
-  // Test 2: Should return valid JSON body
-  test('should return valid JSON body', async () => {
-    // Arrange
+  test('should return products with count field from joined data', async () => {
     const event = {};
-    
-    // Act
     const response = await getProductsList(event);
     const body = JSON.parse(response.body);
-    
-    // Assert
-    expect(Array.isArray(body)).toBe(true);
-    expect(body.length).toBeGreaterThan(0);
-  });
 
-  // Test 3: Should return products with correct structure
-  test('should return products with correct structure', async () => {
-    // Arrange
-    const event = {};
-    
-    // Act
-    const response = await getProductsList(event);
-    const body = JSON.parse(response.body);
-    
-    // Assert
     body.forEach(product => {
       expect(product).toHaveProperty('id');
       expect(product).toHaveProperty('title');
       expect(product).toHaveProperty('description');
       expect(product).toHaveProperty('price');
-      expect(typeof product.id).toBe('string');
-      expect(typeof product.title).toBe('string');
-      expect(typeof product.description).toBe('string');
-      expect(typeof product.price).toBe('number');
+      expect(product).toHaveProperty('count'); // Joined field
+      expect(typeof product.count).toBe('number');
     });
   });
 
-  // Test 4: Should return the same products as mock data
-  test('should return all products from mock data', async () => {
-    // Arrange
+  test('should include CORS headers', async () => {
     const event = {};
-    
-    // Act
     const response = await getProductsList(event);
-    const body = JSON.parse(response.body);
-    
-    // Assert
-    expect(body).toEqual(products);
-    expect(body.length).toBe(products.length);
-  });
 
-  // Test 5: Should include CORS headers
-  test('should include proper CORS headers', async () => {
-    // Arrange
-    const event = {};
-    
-    // Act
-    const response = await getProductsList(event);
-    
-    // Assert
-    expect(response.headers['Access-Control-Allow-Origin']).toBe('*');
-    expect(response.headers['Access-Control-Allow-Credentials']).toBe(true);
-  });
-
-  // Test 6: Should handle empty event object
-  test('should handle request with empty event object', async () => {
-    // Arrange
-    const event = {};
-    
-    // Act
-    const response = await getProductsList(event);
-    
-    // Assert
-    expect(response).toBeDefined();
-    expect(response.statusCode).toBe(200);
+    expect(response.headers).toHaveProperty('Access-Control-Allow-Origin', '*');
+    expect(response.headers).toHaveProperty('Access-Control-Allow-Credentials', true);
   });
 });

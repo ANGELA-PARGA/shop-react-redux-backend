@@ -11,6 +11,27 @@ provider:
   # Uncomment to easily set up a custom domain. Read the docs for more details:
   # https://www.serverless.com/framework/docs/providers/aws/guide/domains
   # domain: api.example.com
+  environment:
+    PRODUCTS_TABLE: products
+    STOCKS_TABLE: stock
+  
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:BatchWriteItem
+            - dynamodb:BatchGetItem
+            - dynamodb:TransactWriteItems
+          Resource:
+            - arn:aws:dynamodb:${self:provider.region}:*:table/products
+            - arn:aws:dynamodb:${self:provider.region}:*:table/stock
 
 functions:
 
@@ -27,3 +48,11 @@ functions:
       - httpApi:
           path: /products/{productId}
           method: get
+
+  createProduct:
+    handler: src/functions/createProduct/handler.createProduct
+    events:
+      - httpApi:
+          path: /products
+          method: post
+          cors: true

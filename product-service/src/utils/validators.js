@@ -15,9 +15,6 @@ const UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[
  * @param {string} uuid - The string to validate
  * @returns {boolean} True if valid UUID v4, false otherwise
  * 
- * @example
- * isValidUUID('7567ec4b-b10c-48c5-9345-fc73c48a80aa'); // true
- * isValidUUID('invalid-id'); // false
  */
 export const isValidUUID = (uuid) => {
   if (!uuid || typeof uuid !== 'string') {
@@ -47,16 +44,10 @@ export const isPositiveNumber = (value) => {
 };
 
 /**
- * Validates a product object structure
- * 
+ * Validates a product object structure * 
  * @param {Object} product - The product object to validate
  * @returns {Object} Validation result with isValid flag and errors array
  * 
- * @example
- * const result = validateProduct({ id: '...', title: 'Product' });
- * if (!result.isValid) {
- *   console.log(result.errors);
- * }
  */
 export const validateProduct = (product) => {
   const errors = [];
@@ -80,9 +71,58 @@ export const validateProduct = (product) => {
   if (!isPositiveNumber(product.price)) {
     errors.push('Product price must be a positive number');
   }
+
+  if(!isPositiveNumber(product.count)) {
+    errors.push('Product count must be 0 or a positive number')
+  }
   
   return {
     isValid: errors.length === 0,
     errors,
+  };
+};
+
+export const validateProductBody = (data) => {
+  const errors = [];
+
+  if (!data.title || typeof data.title !== 'string') {
+    errors.push('title is required and must be a string');
+  } else if (data.title.trim().length === 0) {
+    errors.push('title cannot be empty');
+  } else if (data.title.length > 255) {
+    errors.push('title must be less than 255 characters');
+  }
+
+  if (data.description !== undefined && data.description !== null) {
+    if (typeof data.description !== 'string') {
+      errors.push('description must be a string');
+    } else if (data.description.length > 1000) {
+      errors.push('description must be less than 1000 characters');
+    }
+  }
+
+  if (data.price === undefined || data.price === null) {
+    errors.push('price is required');
+  } else if (typeof data.price !== 'number') {
+    errors.push('price must be a number');
+  } else if (data.price <= 0) {
+    errors.push('price must be greater than 0');
+  } else if (!Number.isFinite(data.price)) {
+    errors.push('price must be a finite number');
+  }
+
+  if (data.count === undefined || data.count === null) {
+    errors.push('count is required');
+  } else if (typeof data.count !== 'number') {
+    errors.push('count must be a number');
+  } else if (!Number.isInteger(data.count)) {
+    errors.push('count must be an integer');
+  } else if (data.count < 0) {
+    errors.push('count must be non-negative');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
   };
 };
