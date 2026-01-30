@@ -31,16 +31,13 @@ describe('createProduct Lambda Handler', () => {
     expect(body.title).toBe('Test Product');
     expect(body.description).toBe('Test Description');
     expect(body.price).toBe(99.99);
-    expect(body.count).toBe(10);
-    
-    // Verify the database transaction was called with correct data
+  
     expect(dbMocks.createProductTransaction).toHaveBeenCalledTimes(1);
     expect(dbMocks.createProductTransaction).toHaveBeenCalledWith(
       expect.objectContaining({
         title: 'Test Product',
         description: 'Test Description',
         price: 99.99,
-        count: 10,
         id: expect.any(String)
       }),
       expect.objectContaining({

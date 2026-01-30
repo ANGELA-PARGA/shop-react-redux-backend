@@ -14,11 +14,11 @@ describe('getProductsById Lambda Handler', () => {
 
   test('should return product with status code 200 for valid product ID', async () => {
     const targetProduct = products.find(p => p.id === '7567ec4b-b10c-48c5-9345-fc73c48a80aa');
-    const { count, ...productWithoutCount } = targetProduct;
+    const mockCount = 10;
     
-    dbMocks.getProduct.mockResolvedValue(productWithoutCount);
-    dbMocks.getStock.mockResolvedValue({ product_id: targetProduct.id, count });
-    dbMocks.joinProductWithStock.mockReturnValue(targetProduct);
+    dbMocks.getProduct.mockResolvedValue(targetProduct);
+    dbMocks.getStock.mockResolvedValue({ product_id: targetProduct.id, count: mockCount });
+    dbMocks.joinProductWithStock.mockReturnValue({ ...targetProduct, count: mockCount });
 
     const event = {
       pathParameters: { productId: '7567ec4b-b10c-48c5-9345-fc73c48a80aa' }
@@ -28,7 +28,7 @@ describe('getProductsById Lambda Handler', () => {
     const body = JSON.parse(response.body);
 
     expect(response.statusCode).toBe(200);
-    expect(body).toEqual(targetProduct);
+    expect(body).toEqual({ ...targetProduct, count: mockCount });
     
     expect(dbMocks.getProduct).toHaveBeenCalledWith('7567ec4b-b10c-48c5-9345-fc73c48a80aa');
     expect(dbMocks.getStock).toHaveBeenCalledWith('7567ec4b-b10c-48c5-9345-fc73c48a80aa');
@@ -69,11 +69,11 @@ describe('getProductsById Lambda Handler', () => {
 
   test('should include CORS headers', async () => {
     const targetProduct = products[0];
-    const { count, ...productWithoutCount } = targetProduct;
+    const mockCount = 10;
     
-    dbMocks.getProduct.mockResolvedValue(productWithoutCount);
-    dbMocks.getStock.mockResolvedValue({ product_id: targetProduct.id, count });
-    dbMocks.joinProductWithStock.mockReturnValue(targetProduct);
+    dbMocks.getProduct.mockResolvedValue(targetProduct);
+    dbMocks.getStock.mockResolvedValue({ product_id: targetProduct.id, count: mockCount });
+    dbMocks.joinProductWithStock.mockReturnValue({ ...targetProduct, count: mockCount });
 
     const event = {
       pathParameters: { productId: targetProduct.id }

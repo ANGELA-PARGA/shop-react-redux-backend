@@ -71,10 +71,6 @@ export const validateProduct = (product) => {
   if (!isPositiveNumber(product.price)) {
     errors.push('Product price must be a positive number');
   }
-
-  if(!isPositiveNumber(product.count)) {
-    errors.push('Product count must be 0 or a positive number')
-  }
   
   return {
     isValid: errors.length === 0,

@@ -55,4 +55,3 @@ functions:
       - httpApi:
           path: /products
           method: post
-          cors: true

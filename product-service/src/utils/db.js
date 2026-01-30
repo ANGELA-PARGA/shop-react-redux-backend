@@ -8,15 +8,13 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, ScanCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 
-// Get configuration from environment variables
-const REGION = process.env.AWS_REGION || process.env.REGION || 'us-east-1';
-const PRODUCTS_TABLE = process.env.PRODUCTS_TABLE || 'products';
-const STOCKS_TABLE = process.env.STOCKS_TABLE || 'stock';
+const REGION = 'us-east-1';
+const PRODUCTS_TABLE = 'products';
+const STOCKS_TABLE = 'stock';
 
-// Initialize DynamoDB client
+
 const client = new DynamoDBClient({ region: REGION });
 
-// Create DocumentClient with marshalling options
 const docClient = DynamoDBDocumentClient.from(client, {
   marshallOptions: {
     removeUndefinedValues: true,

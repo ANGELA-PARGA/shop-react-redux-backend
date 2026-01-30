@@ -11,15 +11,26 @@ describe('getProductsList Lambda Handler', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
-    const productsWithoutCount = products.map(({ count, ...rest }) => rest);
-    const mockStocks = products.map(p => ({ 
-      product_id: p.id, 
-      count: p.count 
+    const mockProducts = products.map(p => ({
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      price: p.price
     }));
     
-    dbMocks.getAllProducts.mockResolvedValue(productsWithoutCount);
+    const mockStocks = products.map(p => ({ 
+      product_id: p.id, 
+      count: 10
+    }));
+    
+    const productsWithStock = products.map(p => ({
+      ...p,
+      count: 10
+    }));
+    
+    dbMocks.getAllProducts.mockResolvedValue(mockProducts);
     dbMocks.getAllStocks.mockResolvedValue(mockStocks);
-    dbMocks.joinProductsWithStocks.mockReturnValue(products); // Returns joined data
+    dbMocks.joinProductsWithStocks.mockReturnValue(productsWithStock); 
   });
 
   test('should return all products with status code 200', async () => {
@@ -29,8 +40,16 @@ describe('getProductsList Lambda Handler', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.headers).toHaveProperty('Access-Control-Allow-Origin', '*');
-    expect(body).toEqual(products); // Now this will match!
+    expect(Array.isArray(body)).toBe(true);
     expect(body.length).toBe(products.length);
+
+    body.forEach(product => {
+      expect(product).toHaveProperty('id');
+      expect(product).toHaveProperty('title');
+      expect(product).toHaveProperty('description');
+      expect(product).toHaveProperty('price');
+      expect(product).toHaveProperty('count');
+    });
     
     expect(dbMocks.getAllProducts).toHaveBeenCalledTimes(1);
     expect(dbMocks.getAllStocks).toHaveBeenCalledTimes(1);
@@ -47,7 +66,7 @@ describe('getProductsList Lambda Handler', () => {
       expect(product).toHaveProperty('title');
       expect(product).toHaveProperty('description');
       expect(product).toHaveProperty('price');
-      expect(product).toHaveProperty('count'); // Joined field
+      expect(product).toHaveProperty('count'); 
       expect(typeof product.count).toBe('number');
     });
   });

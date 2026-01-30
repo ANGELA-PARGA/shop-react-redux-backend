@@ -48,7 +48,6 @@ const handler = async (event) => {
     title: productData.title.trim(),
     description: productData.description?.trim() || '',
     price: productData.price,
-    count: productData.count,
   };
 
   const stock = {
