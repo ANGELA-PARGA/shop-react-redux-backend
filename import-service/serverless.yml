@@ -1,0 +1,52 @@
+org: angelaparga
+service: import-service
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: eu-west-1
+  stage: dev
+  # Uncomment to easily set up a custom domain. Read the docs for more details:
+  # https://www.serverless.com/framework/docs/providers/aws/guide/domains
+  # domain: api.example.com
+  environment:
+    BUCKET_NAME: angela-shop-upload-2026
+    SIGNED_URL_EXPIRATION: 300
+    UPLOADED_FOLDER: uploaded
+    PARSED_FOLDER: parsed
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow'
+          Action:
+            - 's3:ListBucket'
+          Resource:
+            - 'arn:aws:s3:::angela-shop-upload-2026'
+        - Effect: 'Allow'
+          Action:
+            - 's3:GetObject'
+            - 's3:PutObject'
+            - 's3:DeleteObject'
+            - 's3:CopyObject'
+          Resource:
+            - 'arn:aws:s3:::angela-shop-upload-2026/*'
+            
+functions:
+
+  importProductsFile:
+    handler: src/functions/importProductsFile/handler.importProductsFile
+    events:
+      - httpApi:
+          method: get
+          path: /import
+
+  importFileParser:
+    handler: src/functions/importFileParser/handler.importFileParser
+    events:
+      - s3:
+          bucket: ${self:provider.environment.BUCKET_NAME}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: uploaded/
+            - suffix: .csv
+          existing: true
