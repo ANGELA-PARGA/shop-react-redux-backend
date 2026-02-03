@@ -4,7 +4,7 @@ service: import-service
 provider:
   name: aws
   runtime: nodejs20.x
-  region: us-east-1
+  region: eu-west-1
   stage: dev
   # Uncomment to easily set up a custom domain. Read the docs for more details:
   # https://www.serverless.com/framework/docs/providers/aws/guide/domains
@@ -14,8 +14,7 @@ provider:
     SIGNED_URL_EXPIRATION: 300
     UPLOADED_FOLDER: uploaded
     PARSED_FOLDER: parsed
-
-iam:
+  iam:
     role:
       statements:
         - Effect: 'Allow'
@@ -40,10 +39,6 @@ functions:
       - httpApi:
           method: get
           path: /import
-          request:
-            parameters:
-              querystrings:
-                name: true
 
   importFileParser:
     handler: src/functions/importFileParser/handler.importFileParser
