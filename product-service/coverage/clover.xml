@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1769647471132" clover="3.2.0">
+  <project timestamp="1769647471132" name="All files">
+    <metrics statements="10" coveredstatements="10" conditionals="4" coveredconditionals="4" methods="3" coveredmethods="3" elements="17" coveredelements="17" complexity="0" loc="10" ncloc="10" packages="2" files="2" classes="2"/>
+    <package name="getProductsById">
+      <metrics statements="8" coveredstatements="8" conditionals="4" coveredconditionals="4" methods="2" coveredmethods="2"/>
+      <file name="handler.js" path="C:\Users\Usuario\Documents\EPAM SPECIALIZATION TASKS\cloud_aws_tasks\shop-react-redux-backend\product-service\src\functions\getProductsById\handler.js">
+        <metrics statements="8" coveredstatements="8" conditionals="4" coveredconditionals="4" methods="2" coveredmethods="2"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="10" count="14" type="stmt"/>
+        <line num="13" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="14" count="2" type="stmt"/>
+        <line num="21" count="28" type="stmt"/>
+        <line num="23" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="24" count="3" type="stmt"/>
+        <line num="30" count="9" type="stmt"/>
+      </file>
+    </package>
+    <package name="getProductsList">
+      <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+      <file name="handler.js" path="C:\Users\Usuario\Documents\EPAM SPECIALIZATION TASKS\cloud_aws_tasks\shop-react-redux-backend\product-service\src\functions\getProductsList\handler.js">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="5" count="6" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>

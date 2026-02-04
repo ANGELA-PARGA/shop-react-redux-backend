@@ -1,0 +1,162 @@
+openapi: 3.0.3
+info:
+  title: Product Service API
+  description: |
+    RESTful API for managing products in the e-commerce application.
+    This service provides endpoints to retrieve product information.
+  version: 1.0.0
+  contact:
+    name: Angela Parga
+    url: https://github.com/ANGELA-PARGA/shop-react-redux-backend
+  license:
+    name: MIT
+
+servers:
+  - url: https://{apiId}.execute-api.us-east-1.amazonaws.com/dev
+    description: Development server
+    variables:
+      apiId:
+        default: your-api-id
+        description: AWS API Gateway ID
+  - url: http://localhost:3000
+    description: Local development server
+
+tags:
+  - name: Products
+    description: Product management endpoints
+
+paths:
+  /products:
+    get:
+      tags:
+        - Products
+      summary: Get all products
+      description: Retrieves a list of all available products in the catalog
+      operationId: getProductsList
+      responses:
+        '200':
+          description: Successful response with list of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+              examples:
+                productList:
+                  summary: Example product list
+                  value:
+                    - id: "7567ec4b-b10c-48c5-9345-fc73c48a80aa"
+                      title: "ProductOne"
+                      description: "Short Product Description1"
+                      price: 24
+                    - id: "7567ec4b-b10c-48c5-9345-fc73c48a80a1"
+                      title: "ProductTwo"
+                      description: "Short Product Description2"
+                      price: 15
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /products/{productId}:
+    get:
+      tags:
+        - Products
+      summary: Get product by ID
+      description: Retrieves a single product by its unique identifier (UUID)
+      operationId: getProductsById
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          description: Unique identifier of the product (UUID format)
+          schema:
+            type: string
+            format: uuid
+          example: "7567ec4b-b10c-48c5-9345-fc73c48a80aa"
+      responses:
+        '200':
+          description: Successful response with product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+              examples:
+                productDetails:
+                  summary: Example product details
+                  value:
+                    id: "7567ec4b-b10c-48c5-9345-fc73c48a80aa"
+                    title: "ProductOne"
+                    description: "Short Product Description1"
+                    price: 24
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                notFound:
+                  summary: Product not found example
+                  value:
+                    message: "Product not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Product:
+      type: object
+      required:
+        - id
+        - title
+        - description
+        - price
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the product (UUID v4)
+          example: "7567ec4b-b10c-48c5-9345-fc73c48a80aa"
+        title:
+          type: string
+          description: Product title/name
+          minLength: 1
+          maxLength: 100
+          example: "ProductOne"
+        description:
+          type: string
+          description: Detailed product description
+          minLength: 1
+          maxLength: 500
+          example: "Short Product Description1"
+        price:
+          type: number
+          format: float
+          description: Product price in USD
+          minimum: 0
+          example: 24
+      example:
+        id: "7567ec4b-b10c-48c5-9345-fc73c48a80aa"
+        title: "ProductOne"
+        description: "Short Product Description1"
+        price: 24
+
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Error message describing what went wrong
+          example: "Product not found"
+      example:
+        message: "Product not found"

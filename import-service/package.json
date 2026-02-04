@@ -1,0 +1,36 @@
+{
+  "name": "import-service",
+  "version": "1.0.0",
+  "description": "Import Service for AWS Lambda with Serverless Framework",
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "deploy": "serverless deploy",
+    "deploy:dev": "serverless deploy --stage dev",
+    "deploy:prod": "serverless deploy --stage prod",
+    "remove": "serverless remove",
+    "logs:importProductsFile": "serverless logs -f importProductsFile",
+    "logs:importFileParser": "serverless logs -f importFileParser"
+  },
+  "keywords": [
+    "serverless",
+    "lambda",
+    "aws",
+    "api-gateway",
+    "products"
+  ],
+  "author": "Angela Parga",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "main": "jest.config.js",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.981.0",
+    "@aws-sdk/client-sqs": "^3.981.0",
+    "@aws-sdk/s3-request-presigner": "^3.981.0",
+    "csv-parser": "^3.2.0"
+  }
+}
