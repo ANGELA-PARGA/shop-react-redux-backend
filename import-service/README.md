@@ -103,7 +103,7 @@ npm install
 Configured in `serverless.yml`:
 
 ```yaml
-BUCKET_NAME: angela-shop-upload-2026
+BUCKET_NAME: angela-shop-upload-files-2026
 SIGNED_URL_EXPIRATION: 300 
 UPLOADED_FOLDER: uploaded
 PARSED_FOLDER: parsed

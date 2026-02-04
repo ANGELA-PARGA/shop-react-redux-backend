@@ -81,7 +81,7 @@ export const validateProduct = (product) => {
 export const validateProductBody = (data) => {
   const errors = [];
 
-  if (!data.title || typeof data.title !== 'string') {
+  if (!data.title || typeof data.title !== 'string' || !data.title.trim()) {
     errors.push('title is required and must be a string');
   } else if (data.title.trim().length === 0) {
     errors.push('title cannot be empty');
@@ -89,12 +89,12 @@ export const validateProductBody = (data) => {
     errors.push('title must be less than 255 characters');
   }
 
-  if (data.description !== undefined && data.description !== null) {
-    if (typeof data.description !== 'string') {
-      errors.push('description must be a string');
-    } else if (data.description.length > 1000) {
-      errors.push('description must be less than 1000 characters');
-    }
+  if (!data.description || typeof data.description !== 'string' || !data.description.trim()) {
+    errors.push('description is required and must be a string');
+  } else if (data.description.trim().length === 0) {
+    errors.push('description cannot be empty');
+  } else if (data.description.length > 1000) {
+    errors.push('description must be less than 1000 characters');
   }
 
   if (data.price === undefined || data.price === null) {

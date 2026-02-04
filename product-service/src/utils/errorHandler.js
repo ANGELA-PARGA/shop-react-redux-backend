@@ -31,7 +31,13 @@ export function withErrorHandler(handler, functionName) {
       let errorMessage = 'Internal server error';
       let statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR;
 
-      if (error.name === 'ResourceNotFoundException') {
+      if (error.name === 'ValidationError') {
+        errorMessage = error.message;
+        statusCode = HTTP_STATUS.BAD_REQUEST;
+      } else if (error.name === 'SyntaxError') {
+        errorMessage = 'Invalid JSON in request body';
+        statusCode = HTTP_STATUS.BAD_REQUEST;
+      } else if (error.name === 'ResourceNotFoundException') {
         errorMessage = 'Database resource not found';
         logError(
           new Error('DynamoDB table not found'),

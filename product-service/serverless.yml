@@ -1,7 +1,13 @@
-# "org" ensures this Service is used with the correct Serverless Framework Access Key.
 org: angelaparga
-# "service" is the name of this project. This will also be added to your AWS resource names.
 service: product-service
+
+params:
+  dev:
+    notificationEmail: angela.parga.g@gmail.com
+    highValueEmail: angela.parga.g@gmail.com
+  prod:
+    notificationEmail: angela.parga.g@gmail.com
+    highValueEmail: angela.parga.g@gmail.com
 
 provider:
   name: aws
@@ -32,9 +38,18 @@ provider:
           Resource:
             - arn:aws:dynamodb:${self:provider.region}:*:table/products
             - arn:aws:dynamodb:${self:provider.region}:*:table/stock
+        - Effect: Allow
+          Action:
+            - sqs:ReceiveMessage
+            - sqs:DeleteMessage
+            - sqs:GetQueueAttributes
+          Resource: !GetAtt CatalogItemsQueue.Arn
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource: !Ref CreateProductTopic
 
 functions:
-
   getProductsList:
     handler: src/functions/getProductsList/handler.getProductsList
     events:
@@ -55,3 +70,68 @@ functions:
       - httpApi:
           path: /products
           method: post
+  
+  catalogBatchProcess:
+    handler: src/functions/catalogBatchProcess/handler.catalogBatchProcess
+    events:
+      - sqs:
+          arn: !GetAtt CatalogItemsQueue.Arn
+          batchSize: 5
+          functionResponseType: ReportBatchItemFailures
+    environment:
+      SNS_TOPIC_ARN: !Ref CreateProductTopic
+
+resources:
+  Resources:
+    CatalogItemsQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: catalogItemsQueue-${sls:stage}
+        VisibilityTimeout: 60
+        MessageRetentionPeriod: 345600
+        ReceiveMessageWaitTimeSeconds: 20
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt CatalogItemsDLQ.Arn
+          maxReceiveCount: 3
+    
+    CatalogItemsDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: catalogItemsQueue-dlq-${sls:stage}
+        MessageRetentionPeriod: 1209600
+    
+    CreateProductTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: createProductTopic-${sls:stage}
+        DisplayName: Product Creation Notifications
+    
+    # Temporarily commented - will add subscriptions manually in console
+    # CreateProductHighValueSubscription:
+    #   Type: AWS::SNS::Subscription
+    #   Properties:
+    #     Protocol: email
+    #     TopicArn: !Ref CreateProductTopic
+    #     Endpoint: ${param:highValueEmail}
+    #     FilterPolicy:
+    #       highValue:
+    #         - 'true'
+    
+  Outputs:
+    CatalogItemsQueueUrl:
+      Description: URL of the catalog items SQS queue
+      Value: !Ref CatalogItemsQueue
+      Export:
+        Name: ${self:service}-${sls:stage}-CatalogItemsQueueUrl
+    
+    CatalogItemsQueueArn:
+      Description: ARN of the catalog items SQS queue
+      Value: !GetAtt CatalogItemsQueue.Arn
+      Export:
+        Name: ${self:service}-${sls:stage}-CatalogItemsQueueArn
+    
+    CreateProductTopicArn:
+      Description: ARN of the product creation SNS topic
+      Value: !Ref CreateProductTopic
+      Export:
+        Name: ${self:service}-${sls:stage}-CreateProductTopicArn

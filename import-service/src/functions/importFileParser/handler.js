@@ -2,7 +2,7 @@
  * Import File Parser Handler
  * 
  * Triggered by S3 when a CSV file is uploaded to the 'uploaded/' folder.
- * Streams the file, parses CSV records, logs each record to CloudWatch,
+ * Streams the file, parses CSV records, sends each record to SQS,
  * and moves the file to 'parsed/' folder when complete.
  * 
  * S3 Event Trigger: s3:ObjectCreated:* for uploaded/*.csv
@@ -11,11 +11,63 @@
 import { pipeline } from 'stream/promises';
 import { Transform } from 'stream';
 import csvParser from 'csv-parser';
+import { SQSClient, SendMessageBatchCommand } from '@aws-sdk/client-sqs';
 import { getObjectStream, moveFromUploadedToParsed } from '../../utils/s3.js';
 import { withErrorHandler } from '../../utils/errorHandler.js';
 import { logSuccess, logWarning, logRequest } from '../../utils/logger.js';
 import { validateProductRecord } from '../../utils/validators.js';
 import { createSuccessResponse } from '../../utils/responseBuilder.js';
+
+const sqsClient = new SQSClient({ region: 'us-east-1' });
+
+/**
+ * Send products to SQS in batches
+ * 
+ * @param {Array} products - Array of product records
+ * @returns {Promise<void>}
+ */
+async function sendToSQS(products) {
+  const batchSize = 10; 
+  
+  for (let i = 0; i < products.length; i += batchSize) {
+    const batch = products.slice(i, i + batchSize);
+    
+    const entries = batch.map((product, index) => ({
+      Id: `${Date.now()}-${i + index}`,
+      MessageBody: JSON.stringify({
+        title: product.title,
+        description: product.description || '',
+        price: parseFloat(product.price),
+        count: parseInt(product.count, 10)
+      }),
+      MessageAttributes: {
+        productTitle: {
+          DataType: 'String',
+          StringValue: product.title
+        },
+        productPrice: {
+          DataType: 'Number',
+          StringValue: String(parseFloat(product.price))
+        }
+      }
+    }));
+
+    const params = {
+      QueueUrl: process.env.CATALOG_ITEMS_QUEUE_URL,
+      Entries: entries
+    };
+
+    const response = await sqsClient.send(new SendMessageBatchCommand(params));
+    
+    console.log(`[INFO] Batch ${Math.floor(i / batchSize) + 1} sent to SQS: ${entries.length} messages`);
+    
+    if (response.Failed && response.Failed.length > 0) {
+      logWarning('Some messages failed to send to SQS', {
+        failures: response.Failed
+      });
+    }
+  }
+}
 
 /**
  * Processes a single CSV file from S3
@@ -29,6 +81,7 @@ async function processFile(bucket, key) {
 
   const stream = await getObjectStream(bucket, key);
 
+  const validProducts = [];
   let totalRows = 0;
   let validRows = 0;
   let invalidRows = 0;
@@ -42,12 +95,7 @@ async function processFile(bucket, key) {
       
       if (validation.isValid) {
         validRows++;
-        console.log('[CSV_RECORD]', JSON.stringify({
-          timestamp: new Date().toISOString(),
-          type: 'CSV_RECORD',
-          rowNumber: totalRows,
-          record: row,
-        }));
+        validProducts.push(row);
       } else {
         invalidRows++;
         logWarning('Invalid CSV record', {
@@ -77,15 +125,21 @@ async function processFile(bucket, key) {
     validRows,
     invalidRows,
   }));
+
+  if (validProducts.length > 0) {
+    await sendToSQS(validProducts);
+    console.log(`[INFO] Sent ${validProducts.length} products to SQS queue`);
+  }
   
   const fileName = key.split('/').pop();
   await moveFromUploadedToParsed(bucket, fileName);
   
-  logSuccess(200, 'File processed and moved to parsed folder', { 
+  logSuccess(200, 'File processed and sent to SQS', { 
     fileName, 
     totalRows,
     validRows,
-    invalidRows 
+    invalidRows,
+    sentToSQS: validProducts.length
   });
 
   return {
@@ -93,6 +147,7 @@ async function processFile(bucket, key) {
     totalRows,
     validRows,
     invalidRows,
+    sentToSQS: validProducts.length,
     status: 'success'
   };
 }

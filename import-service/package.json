@@ -29,6 +29,7 @@
   "main": "jest.config.js",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.981.0",
+    "@aws-sdk/client-sqs": "^3.981.0",
     "@aws-sdk/s3-request-presigner": "^3.981.0",
     "csv-parser": "^3.2.0"
   }
