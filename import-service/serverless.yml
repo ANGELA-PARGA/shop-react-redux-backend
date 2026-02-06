@@ -1,0 +1,67 @@
+org: angelaparga
+service: import-service
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  stage: dev
+  # Uncomment to easily set up a custom domain. Read the docs for more details:
+  # https://www.serverless.com/framework/docs/providers/aws/guide/domains
+  # domain: api.example.com
+  httpApi:
+    authorizers:
+      basicAuthorizer:
+        type: request
+        functionArn: ${cf:authorization-service-${self:provider.stage}.BasicAuthorizerArn}
+        enableSimpleResponses: true
+        identitySource: $request.header.Authorization
+  environment:
+    BUCKET_NAME: angela-shop-upload-files-2026
+    SIGNED_URL_EXPIRATION: 300
+    UPLOADED_FOLDER: uploaded
+    PARSED_FOLDER: parsed
+    CATALOG_ITEMS_QUEUE_URL: ${cf:product-service-dev.CatalogItemsQueueUrl}
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow'
+          Action:
+            - 's3:ListBucket'
+          Resource:
+            - 'arn:aws:s3:::angela-shop-upload-files-2026'
+        - Effect: 'Allow'
+          Action:
+            - 's3:GetObject'
+            - 's3:PutObject'
+            - 's3:DeleteObject'
+            - 's3:CopyObject'
+          Resource:
+            - 'arn:aws:s3:::angela-shop-upload-files-2026/*'
+        - Effect: 'Allow'
+          Action:
+            - 'sqs:SendMessage'
+            - 'sqs:SendMessageBatch'
+          Resource: ${cf:product-service-dev.CatalogItemsQueueArn}
+            
+functions:
+
+  importProductsFile:
+    handler: src/functions/importProductsFile/handler.importProductsFile
+    events:
+      - httpApi:
+          method: get
+          path: /import
+          authorizer:
+            name: basicAuthorizer
+
+  importFileParser:
+    handler: src/functions/importFileParser/handler.importFileParser
+    events:
+      - s3:
+          bucket: ${self:provider.environment.BUCKET_NAME}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: uploaded/
+            - suffix: .csv
+          existing: true

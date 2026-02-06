@@ -1,0 +1,27 @@
+org: angelaparga
+service: authorization-service
+
+plugins:
+  - serverless-dotenv-plugin
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  stage: dev
+  # Uncomment to easily set up a custom domain. Read the docs for more details:
+  # https://www.serverless.com/framework/docs/providers/aws/guide/domains
+  # domain: api.example.com
+
+functions:
+  basicAuthorizer:
+    handler: src/functions/basicAuthorizer/handler.basicAuthorizer
+    # No HTTP events - this function is used as an authorizer only
+
+resources:
+  Outputs:
+    BasicAuthorizerArn:
+      Description: ARN of the basic authorizer lambda function
+      Value: !GetAtt BasicAuthorizerLambdaFunction.Arn
+      Export:
+        Name: ${self:service}-${self:provider.stage}-BasicAuthorizerArn
