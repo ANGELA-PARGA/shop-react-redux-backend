@@ -45,6 +45,9 @@ functions:
       - httpApi:
           method: get
           path: /import
+          authorizer:
+            type: request
+            id: !ImportValue authorization-service-${self:provider.stage}-BasicAuthorizerArn
 
   importFileParser:
     handler: src/functions/importFileParser/handler.importFileParser
