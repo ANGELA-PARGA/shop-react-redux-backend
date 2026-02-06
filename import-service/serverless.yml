@@ -9,6 +9,13 @@ provider:
   # Uncomment to easily set up a custom domain. Read the docs for more details:
   # https://www.serverless.com/framework/docs/providers/aws/guide/domains
   # domain: api.example.com
+  httpApi:
+    authorizers:
+      basicAuthorizer:
+        type: request
+        functionArn: ${cf:authorization-service-${self:provider.stage}.BasicAuthorizerArn}
+        enableSimpleResponses: true
+        identitySource: $request.header.Authorization
   environment:
     BUCKET_NAME: angela-shop-upload-files-2026
     SIGNED_URL_EXPIRATION: 300
@@ -46,8 +53,7 @@ functions:
           method: get
           path: /import
           authorizer:
-            type: request
-            id: !ImportValue authorization-service-${self:provider.stage}-BasicAuthorizerArn
+            name: basicAuthorizer
 
   importFileParser:
     handler: src/functions/importFileParser/handler.importFileParser
